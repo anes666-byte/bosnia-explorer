@@ -1,1 +1,191 @@
 
+<!DOCTYPE html>
+<html lang="bs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bosnia Explorer — Administracija</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: Arial, sans-serif;
+      background: #0b1424;
+      color: #f5f0e5;
+    }
+    main { max-width: 1000px; margin: auto; }
+    h1, h2 { color: #e4bd70; }
+    input, textarea, button {
+      box-sizing: border-box;
+      width: 100%;
+      margin: 7px 0;
+      padding: 12px;
+      border-radius: 7px;
+      border: 1px solid #526078;
+      font: inherit;
+    }
+    input, textarea { background: #17243a; color: white; }
+    button {
+      background: #d8b36b;
+      color: #111827;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    section {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #34435b;
+      border-radius: 12px;
+      background: #111e32;
+    }
+    .hidden { display: none; }
+    .item {
+      padding: 12px;
+      border-bottom: 1px solid #34435b;
+      overflow-wrap: anywhere;
+    }
+    .muted { color: #c0cad8; }
+    #status { white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Bosnia Explorer</h1>
+  <p class="muted">Administratorski panel</p>
+
+  <section id="login">
+    <h2>Prijava administratora</h2>
+    <label for="email">Email</label>
+    <input id="email" type="email" autocomplete="username">
+    <label for="password">Lozinka</label>
+    <input id="password" type="password" autocomplete="current-password">
+    <button id="loginBtn">Prijavi se</button>
+  </section>
+
+  <section id="dashboard" class="hidden">
+    <p id="who"></p>
+    <button id="logoutBtn">Odjavi se</button>
+    <h2>Sadržaj stranice</h2>
+    <p class="muted">Ovdje se prikazuju zapisi iz Supabase tabele site_content.</p>
+    <button id="refreshBtn">Osvježi sadržaj</button>
+    <div id="items"></div>
+  </section>
+
+  <p id="status" role="status"></p>
+</main>
+
+<script type="module">
+import { createClient } from
+  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+const SUPABASE_URL = 'https://qgdnmiqziogicadhsgkw.supabase.co';
+
+// Zalijepi svoj javni Supabase publishable key između navodnika.
+const SUPABASE_PUBLISHABLE_KEY = 'ZALIJEPI_SVOJ_PUBLISHABLE_KEY';
+
+const supabase = createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
+
+const $ = id => document.getElementById(id);
+const status = message => $('status').textContent = message;
+
+async function checkSession() {
+  const { data, error } = await supabase.auth.getSession();
+  if (error) status(error.message);
+  if (data.session) await showDashboard(data.session.user);
+}
+
+async function showDashboard(user) {
+  const { data: admin, error: adminError } = await supabase
+    .from('admin_users')
+    .select('user_id')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (adminError || !admin) {
+    await supabase.auth.signOut();
+    $('dashboard').classList.add('hidden');
+    $('login').classList.remove('hidden');
+    status('Ovaj korisnik nema administratorsko pravo.');
+    return;
+  }
+
+  $('login').classList.add('hidden');
+  $('dashboard').classList.remove('hidden');
+  $('who').textContent = 'Prijavljen: ' + user.email;
+  await loadContent();
+}
+
+async function loadContent() {
+  status('Učitavanje sadržaja...');
+  const { data, error } = await supabase
+    .from('site_content')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    status('Greška pri učitavanju: ' + error.message);
+    return;
+  }
+
+  const items = $('items');
+  items.replaceChildren();
+
+  if (!data || data.length === 0) {
+    items.textContent = 'Tabela je prazna. Još nema zapisa.';
+  } else {
+    for (const record of data) {
+      const card = document.createElement('div');
+      card.className = 'item';
+      const title = document.createElement('strong');
+      title.textContent = record.title || 'Bez naslova';
+      const detail = document.createElement('p');
+      detail.textContent = JSON.stringify(record, null, 2);
+      card.append(title, detail);
+      items.append(card);
+    }
+  }
+  status('Sadržaj je učitan.');
+}
+
+$('loginBtn').addEventListener('click', async () => {
+  status('Prijavljivanje...');
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: $('email').value.trim(),
+    password: $('password').value
+  });
+
+  if (error) {
+    status('Prijava nije uspjela: ' + error.message);
+    return;
+  }
+  await showDashboard(data.user);
+});
+
+$('logoutBtn').addEventListener('click', async () => {
+  await supabase.auth.signOut();
+  $('dashboard').classList.add('hidden');
+  $('login').classList.remove('hidden');
+  status('Odjavljeni ste.');
+});
+
+$('refreshBtn').addEventListener('click', loadContent);
+
+supabase.auth.onAuthStateChange((event, session) => {
+  if (event === 'SIGNED_OUT') {
+    $('dashboard').classList.add('hidden');
+    $('login').classList.remove('hidden');
+  }
+});
+
+if (SUPABASE_PUBLISHABLE_KEY === 'dce1b8ad-570f-49c1-83d2-7722f4b40889') {
+  status('Prije prijave ubaci svoj javni Supabase publishable key u kod.');
+} else {
+  checkSession();
+}
+</script>
+</body>
+</html>
+
