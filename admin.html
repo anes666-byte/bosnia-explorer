@@ -4,353 +4,624 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b1424">
-  <title>Bosnia Explorer — Administracija</title>
+  <title>Bosnia Explorer — Admin</title>
+  <meta name="robots" content="noindex,nofollow">
 
   <style>
+    :root {
+      --green: #176b45;
+      --dark: #16372a;
+      --bg: #f3f6f3;
+      --border: #dce5de;
+      --red: #b42318;
+    }
+
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      padding: 24px;
       font-family: Arial, sans-serif;
-      background: #0b1424;
-      color: #f5f0e5;
+      background: var(--bg);
+      color: #24342a;
     }
 
-    main {
-      max-width: 1000px;
-      margin: 0 auto;
-    }
-
-    h1, h2 { color: #e4bd70; }
-
-    input, textarea, button {
-      width: 100%;
-      margin: 7px 0;
-      padding: 12px;
-      border-radius: 7px;
-      border: 1px solid #526078;
-      font: inherit;
-    }
-
-    input, textarea {
-      background: #17243a;
+    header {
+      background: var(--dark);
       color: white;
+      padding: 22px 18px;
     }
 
-    button {
-      background: #d8b36b;
-      color: #111827;
-      font-weight: bold;
-      cursor: pointer;
+    header .inner, main {
+      max-width: 1050px;
+      margin: auto;
     }
 
-    button:disabled {
-      opacity: 0.6;
-      cursor: wait;
-    }
+    header h1 { margin: 0 0 7px; font-size: 24px; }
+    header p { margin: 0; color: #d6e9dc; }
 
-    section {
-      margin: 20px 0;
+    main { padding: 22px 16px 50px; }
+
+    .panel {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 14px;
       padding: 20px;
-      border: 1px solid #34435b;
-      border-radius: 12px;
-      background: #111e32;
+      margin-bottom: 20px;
+      box-shadow: 0 3px 12px #183c2510;
     }
 
-    .hidden { display: none !important; }
-
-    .item {
-      padding: 12px;
-      margin: 10px 0;
-      border: 1px solid #34435b;
-      border-radius: 8px;
-      overflow-wrap: anywhere;
-    }
-
-    .muted { color: #c0cad8; }
-
-    #status {
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-      line-height: 1.5;
-    }
+    h2 { margin-top: 0; font-size: 20px; }
 
     label {
       display: block;
+      margin: 14px 0 6px;
+      font-weight: bold;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #cbd8ce;
+      border-radius: 8px;
+      font: inherit;
+      background: white;
+    }
+
+    textarea { min-height: 145px; resize: vertical; }
+
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 11px 15px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      background: var(--green);
+      color: white;
+      margin: 10px 6px 0 0;
+    }
+
+    button.secondary { background: #e7eee8; color: #214431; }
+    button.danger { background: var(--red); }
+    button:disabled { opacity: .55; cursor: wait; }
+
+    .muted { color: #66766b; font-size: 14px; }
+    .status { margin-top: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .error { color: var(--red); }
+    .success { color: var(--green); }
+
+    .topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .entry {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 15px;
+      margin-top: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    .entry h3 { margin: 0 0 8px; }
+    .entry img {
+      display: block;
+      max-width: 240px;
+      max-height: 170px;
+      object-fit: cover;
+      border-radius: 8px;
       margin-top: 12px;
     }
 
-    pre {
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-    }
+    .entry-content { white-space: pre-wrap; }
+    .hidden { display: none !important; }
+
+    .file-row { margin-top: 8px; }
+    footer { text-align: center; color: #718076; padding: 20px; }
   </style>
 </head>
 
 <body>
-<main>
-  <h1>Bosnia Explorer</h1>
-  <p class="muted">Administratorski panel</p>
+<header>
+  <div class="inner">
+    <h1>🇧🇦 Bosnia Explorer — Admin</h1>
+    <p>Upravljanje sadržajem stranice</p>
+  </div>
+</header>
 
-  <section id="login">
+<main>
+  <section id="loginPanel" class="panel">
     <h2>Prijava administratora</h2>
+    <p class="muted">Prijavi se svojim administratorskim računom.</p>
 
     <form id="loginForm">
-      <label for="email">Email adresa</label>
-      <input
-        id="email"
-        type="email"
-        autocomplete="username"
-        required
-      >
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="username"
+             required placeholder="Tvoj email">
 
       <label for="password">Lozinka</label>
-      <input
-        id="password"
-        type="password"
-        autocomplete="current-password"
-        required
-      >
+      <input id="password" type="password"
+             autocomplete="current-password" required>
 
-      <button id="loginBtn" type="submit">
-        Prijavi se
-      </button>
+      <button id="loginButton" type="submit">Prijavi se</button>
     </form>
+    <div id="loginStatus" class="status" role="status"></div>
   </section>
 
-  <section id="dashboard" class="hidden">
-    <p id="who"></p>
+  <section id="adminPanel" class="hidden">
+    <div class="panel">
+      <div class="topline">
+        <div>
+          <h2>Administratorski panel</h2>
+          <div id="signedIn" class="muted"></div>
+        </div>
+        <button id="logoutButton" class="secondary" type="button">
+          Odjavi se
+        </button>
+      </div>
+    </div>
 
-    <button id="logoutBtn" type="button">
-      Odjavi se
-    </button>
+    <div class="panel">
+      <h2 id="formHeading">Dodaj sadržaj</h2>
+      <p class="muted">
+        Unesi naslov, tekst i po želji sliku. Za izmjenu izaberi
+        „Uredi” na postojećem zapisu.
+      </p>
 
-    <h2>Sadržaj stranice</h2>
-    <p class="muted">
-      Pregled zapisa iz Supabase tabele site_content.
-    </p>
+      <form id="contentForm">
+        <label for="title">Naslov *</label>
+        <input id="title" maxlength="200" required
+               placeholder="Npr. Stari most u Mostaru">
 
-    <button id="refreshBtn" type="button">
-      Osvježi sadržaj
-    </button>
+        <label for="content">Opis / tekst *</label>
+        <textarea id="content" required
+          placeholder="Napiši opis destinacije..."></textarea>
 
-    <div id="items"></div>
+        <label for="imageUrl">URL slike (opcionalno)</label>
+        <input id="imageUrl" type="url"
+               placeholder="https://...">
+
+        <label for="imageFile">Ili izaberi sliku s uređaja</label>
+        <input id="imageFile" class="file-row" type="file"
+               accept="image/*">
+        <p class="muted">
+          Učitavanje datoteke zahtijeva da je Storage bucket
+          „site-images” napravljen i pravilno podešen.
+        </p>
+
+        <div id="imagePreview"></div>
+
+        <button id="saveButton" type="submit">Sačuvaj sadržaj</button>
+        <button id="cancelEditButton" type="button"
+                class="secondary hidden">Odustani od izmjene</button>
+      </form>
+
+      <div id="formStatus" class="status" role="status"></div>
+    </div>
+
+    <div class="panel">
+      <div class="topline">
+        <div>
+          <h2>Sadržaj stranice</h2>
+          <p class="muted">Zapisi iz Supabase tabele site_content.</p>
+        </div>
+        <button id="refreshButton" type="button" class="secondary">
+          Osvježi
+        </button>
+      </div>
+
+      <div id="listStatus" class="status" role="status"></div>
+      <div id="contentList"></div>
+    </div>
   </section>
-
-  <p id="status" role="status" aria-live="polite">
-    Učitavanje administracije...
-  </p>
 </main>
 
-<script type="module">
-const SUPABASE_URL =
-  'https://qgdnmiqziogicadhsgkw.supabase.co';
+<footer>Bosnia Explorer · Administracija</footer>
 
-const SUPABASE_PUBLISHABLE_KEY =
-  'sb_publishable_OkgAf0i8qLu6PLKIydEuJQ_UZ_ajCpR';
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(() => {
+  "use strict";
 
-const $ = (id) => document.getElementById(id);
+  const SUPABASE_URL =
+    "https://qgdnmiqziogicadhsgkw.supabase.co";
 
-function setStatus(message) {
-  $('status').textContent = message;
-}
+  // Koristi samo javni publishable ključ u browseru.
+  // Nikada ovdje ne stavljaj service_role ili secret ključ.
+  const SUPABASE_PUBLISHABLE_KEY =
+    "sb_publishable_OkgAf0i8qLu6PLKIydEuJQ_UZ_ajCpR";
 
-function showLogin() {
-  $('login').classList.remove('hidden');
-  $('dashboard').classList.add('hidden');
-}
+  const ADMIN_USER_ID = "dce1b8ad-570f-49c1-83d2-7722f4b40889";
+  const STORAGE_BUCKET = "site-images";
 
-function showDashboard() {
-  $('login').classList.add('hidden');
-  $('dashboard').classList.remove('hidden');
-}
+  const $ = id => document.getElementById(id);
 
-async function startApp() {
-  let createClient;
+  const loginPanel = $("loginPanel");
+  const adminPanel = $("adminPanel");
+  const loginForm = $("loginForm");
+  const contentForm = $("contentForm");
+  const loginStatus = $("loginStatus");
+  const formStatus = $("formStatus");
+  const listStatus = $("listStatus");
+  const contentList = $("contentList");
 
-  try {
-    const module = await import(
-      'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
-    );
-    createClient = module.createClient;
-  } catch (error) {
-    setStatus(
-      'Supabase biblioteka se nije učitala. Provjeri internet ' +
-      'vezu ili pokušaj ponovo. Detalji: ' + error.message
-    );
-    return;
+  let supabase;
+  let currentUser = null;
+  let editingId = null;
+  let currentRows = [];
+
+  function message(element, text, kind = "") {
+    element.textContent = text;
+    element.className = "status" + (kind ? " " + kind : "");
   }
 
-  if (
-    !SUPABASE_PUBLISHABLE_KEY ||
-    SUPABASE_PUBLISHABLE_KEY === 'ZALIJEPI_SVOJ_PUBLISHABLE_KEY'
-  ) {
-    setStatus(
-      'Nedostaje Supabase publishable key. Provjeri konfiguraciju.'
-    );
-    return;
+  function showAdmin(show) {
+    loginPanel.classList.toggle("hidden", show);
+    adminPanel.classList.toggle("hidden", !show);
   }
 
-  const supabase = createClient(
-    SUPABASE_URL,
-    SUPABASE_PUBLISHABLE_KEY
-  );
+  function friendlyError(error) {
+    const text = error?.message || String(error || "Nepoznata greška");
 
-  async function loadContent() {
-    $('refreshBtn').disabled = true;
-    $('items').replaceChildren();
-    setStatus('Učitavanje sadržaja...');
+    if (/row-level security|permission denied|not allowed/i.test(text)) {
+      return text + "\nProvjeri RLS pravila i dozvole za administratorski račun.";
+    }
 
-    try {
-      const { data, error } = await supabase
-        .from('site_content')
-        .select('*')
-        .order('created_at', { ascending: false });
+    if (/bucket not found|no such bucket/i.test(text)) {
+      return text + "\nU Supabase Storage napravi public bucket 'site-images' i odgovarajuća pravila.";
+    }
 
-      if (error) {
-        setStatus(
-          'Greška pri učitavanju sadržaja: ' + error.message
-        );
-        return;
-      }
+    return text;
+  }
 
-      if (!data || data.length === 0) {
-        $('items').textContent =
-          'Tabela je prazna. Još nema objavljenih zapisa.';
-      } else {
-        for (const record of data) {
-          const card = document.createElement('article');
-          card.className = 'item';
-
-          const title = document.createElement('h3');
-          title.textContent = record.title || 'Bez naslova';
-
-          const details = document.createElement('pre');
-          details.textContent = JSON.stringify(record, null, 2);
-
-          card.append(title, details);
-          $('items').append(card);
-        }
-      }
-
-      setStatus('Sadržaj je učitan.');
-    } catch (error) {
-      setStatus('Greška: ' + error.message);
-    } finally {
-      $('refreshBtn').disabled = false;
+  function setBusy(button, busy, busyText) {
+    if (busy) {
+      button.dataset.originalText = button.textContent;
+      button.textContent = busyText;
+      button.disabled = true;
+    } else {
+      button.textContent = button.dataset.originalText || button.textContent;
+      button.disabled = false;
     }
   }
 
-  async function showAdmin(user) {
-    setStatus('Provjera administratorskih prava...');
-
-    try {
-      const { data: admin, error } = await supabase
-        .from('admin_users')
-        .select('user_id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (error) {
-        showLogin();
-        setStatus(
-          'Prijava je uspjela, ali provjera administratora nije. ' +
-          error.message
-        );
-        return;
-      }
-
-      if (!admin) {
-        await supabase.auth.signOut();
-        showLogin();
-        setStatus(
-          'Korisnik je prijavljen, ali nije registrovan kao ' +
-          'administrator u tabeli admin_users.'
-        );
-        return;
-      }
-
-      $('who').textContent = 'Prijavljen: ' + (user.email || '');
-      showDashboard();
-      await loadContent();
-    } catch (error) {
-      showLogin();
-      setStatus('Greška pri provjeri administratora: ' + error.message);
+  async function verifyAdmin(user) {
+    if (!user || user.id !== ADMIN_USER_ID) {
+      return false;
     }
+
+    const { data, error } = await supabase
+      .from("admin_users")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (error) throw error;
+    return !!data;
   }
 
-  $('loginForm').addEventListener('submit', async (event) => {
-    event.preventDefault();
-
-    const button = $('loginBtn');
-    button.disabled = true;
-    setStatus('Prijavljivanje...');
+  async function login(email, password) {
+    message(loginStatus, "");
+    setBusy($("loginButton"), true, "Prijava...");
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: $('email').value.trim(),
-        password: $('password').value
+        email,
+        password
       });
 
-      if (error) {
-        setStatus('Prijava nije uspjela: ' + error.message);
-        return;
+      if (error) throw error;
+
+      const allowed = await verifyAdmin(data.user);
+
+      if (!allowed) {
+        await supabase.auth.signOut();
+        throw new Error("Ovaj račun nema administratorsko ovlaštenje.");
       }
 
-      await showAdmin(data.user);
+      currentUser = data.user;
+      $("signedIn").textContent = "Prijavljen: " + currentUser.email;
+      showAdmin(true);
+      await loadContent();
     } catch (error) {
-      setStatus(
-        'Greška pri povezivanju sa Supabaseom: ' + error.message
-      );
+      message(loginStatus, friendlyError(error), "error");
     } finally {
-      button.disabled = false;
+      setBusy($("loginButton"), false);
     }
-  });
+  }
 
-  $('logoutBtn').addEventListener('click', async () => {
-    setStatus('Odjavljivanje...');
-
-    const { error } = await supabase.auth.signOut();
-
-    showLogin();
-
-    if (error) {
-      setStatus('Greška pri odjavi: ' + error.message);
-    } else {
-      setStatus('Uspješno ste se odjavili.');
-    }
-  });
-
-  $('refreshBtn').addEventListener('click', loadContent);
-
-  supabase.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_OUT') {
-      showLogin();
-      $('who').textContent = '';
-    }
-  });
-
-  try {
+  async function checkExistingSession() {
     const { data, error } = await supabase.auth.getSession();
+    if (error) throw error;
 
-    if (error) {
-      setStatus('Greška pri provjeri sesije: ' + error.message);
+    const user = data.session?.user;
+    if (!user) {
+      showAdmin(false);
       return;
     }
 
-    if (data.session) {
-      await showAdmin(data.session.user);
-    } else {
-      setStatus('Unesi email i lozinku za prijavu.');
+    try {
+      if (await verifyAdmin(user)) {
+        currentUser = user;
+        $("signedIn").textContent = "Prijavljen: " + user.email;
+        showAdmin(true);
+        await loadContent();
+      } else {
+        await supabase.auth.signOut();
+        showAdmin(false);
+      }
+    } catch (error) {
+      showAdmin(false);
+      message(loginStatus, friendlyError(error), "error");
     }
-  } catch (error) {
-    setStatus('Greška pri pokretanju: ' + error.message);
   }
-}
 
-startApp();
+  async function loadContent() {
+    message(listStatus, "Učitavam sadržaj...");
+    contentList.replaceChildren();
+
+    const { data, error } = await supabase
+      .from("site_content")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      message(listStatus, friendlyError(error), "error");
+      return;
+    }
+
+    currentRows = data || [];
+
+    if (!currentRows.length) {
+      message(listStatus, "Tabela je prazna. Dodaj prvi zapis iz obrasca iznad.");
+      return;
+    }
+
+    message(listStatus, "Broj zapisa: " + currentRows.length);
+
+    for (const item of currentRows) {
+      const card = document.createElement("article");
+      card.className = "entry";
+
+      const heading = document.createElement("h3");
+      heading.textContent = item.title || "(Bez naslova)";
+      card.appendChild(heading);
+
+      const body = document.createElement("p");
+      body.className = "entry-content";
+      body.textContent = item.content || "";
+      card.appendChild(body);
+
+      if (item.image_url) {
+        const img = document.createElement("img");
+        img.src = item.image_url;
+        img.alt = item.title || "Slika";
+        img.loading = "lazy";
+        img.onerror = () => {
+          img.alt = "Slika se ne može prikazati";
+        };
+        card.appendChild(img);
+      }
+
+      const editButton = document.createElement("button");
+      editButton.type = "button";
+      editButton.textContent = "Uredi";
+      editButton.addEventListener("click", () => beginEdit(item));
+      card.appendChild(editButton);
+
+      const deleteButton = document.createElement("button");
+      deleteButton.type = "button";
+      deleteButton.className = "danger";
+      deleteButton.textContent = "Obriši";
+      deleteButton.addEventListener("click", () => deleteContent(item));
+      card.appendChild(deleteButton);
+
+      contentList.appendChild(card);
+    }
+  }
+
+  function beginEdit(item) {
+    editingId = item.id;
+    $("title").value = item.title || "";
+    $("content").value = item.content || "";
+    $("imageUrl").value = item.image_url || "";
+    $("imageFile").value = "";
+    $("formHeading").textContent = "Uredi sadržaj";
+    $("saveButton").textContent = "Sačuvaj izmjene";
+    $("cancelEditButton").classList.remove("hidden");
+    message(formStatus, "Uređuješ izabrani zapis.");
+    $("title").focus();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function resetForm() {
+    editingId = null;
+    contentForm.reset();
+    $("formHeading").textContent = "Dodaj sadržaj";
+    $("saveButton").textContent = "Sačuvaj sadržaj";
+    $("cancelEditButton").classList.add("hidden");
+    $("imagePreview").replaceChildren();
+    message(formStatus, "");
+  }
+
+  async function uploadImage(file) {
+    if (!file) return null;
+
+    if (!file.type.startsWith("image/")) {
+      throw new Error("Izabrana datoteka nije slika.");
+    }
+
+    if (file.size > 8 * 1024 * 1024) {
+      throw new Error("Slika je prevelika. Maksimalna veličina je 8 MB.");
+    }
+
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-");
+    const path = currentUser.id + "/" + crypto.randomUUID() + "-" + safeName;
+
+    const { error } = await supabase.storage
+      .from(STORAGE_BUCKET)
+      .upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: file.type
+      });
+
+    if (error) throw error;
+
+    const { data } = supabase.storage
+      .from(STORAGE_BUCKET)
+      .getPublicUrl(path);
+
+    return data.publicUrl;
+  }
+
+  async function saveContent(event) {
+    event.preventDefault();
+    message(formStatus, "");
+
+    const title = $("title").value.trim();
+    const content = $("content").value.trim();
+    let imageUrl = $("imageUrl").value.trim();
+    const file = $("imageFile").files[0];
+
+    if (!title || !content) {
+      message(formStatus, "Naslov i tekst su obavezni.", "error");
+      return;
+    }
+
+    setBusy($("saveButton"), true, "Čuvam...");
+
+    try {
+      if (file) {
+        message(formStatus, "Učitavam sliku...");
+        imageUrl = await uploadImage(file);
+      }
+
+      const record = {
+        title,
+        content,
+        image_url: imageUrl || null
+      };
+
+      let result;
+
+      if (editingId !== null) {
+        result = await supabase
+          .from("site_content")
+          .update(record)
+          .eq("id", editingId)
+          .select();
+      } else {
+        result = await supabase
+          .from("site_content")
+          .insert(record)
+          .select();
+      }
+
+      if (result.error) throw result.error;
+
+      message(
+        formStatus,
+        editingId !== null ? "Izmjene su sačuvane." : "Sadržaj je dodan.",
+        "success"
+      );
+
+      resetForm();
+      await loadContent();
+    } catch (error) {
+      message(formStatus, friendlyError(error), "error");
+    } finally {
+      setBusy($("saveButton"), false);
+    }
+  }
+
+  async function deleteContent(item) {
+    const title = item.title || "ovaj zapis";
+
+    if (!window.confirm('Želiš li zaista obrisati "' + title + '"?')) {
+      return;
+    }
+
+    message(listStatus, "Brišem zapis...");
+
+    const { error } = await supabase
+      .from("site_content")
+      .delete()
+      .eq("id", item.id);
+
+    if (error) {
+      message(listStatus, friendlyError(error), "error");
+      return;
+    }
+
+    if (editingId === item.id) resetForm();
+
+    message(listStatus, "Zapis je obrisan.", "success");
+    await loadContent();
+  }
+
+  loginForm.addEventListener("submit", event => {
+    event.preventDefault();
+    login($("email").value.trim(), $("password").value);
+  });
+
+  contentForm.addEventListener("submit", saveContent);
+  $("refreshButton").addEventListener("click", loadContent);
+
+  $("cancelEditButton").addEventListener("click", resetForm);
+
+  $("logoutButton").addEventListener("click", async () => {
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      message(listStatus, friendlyError(error), "error");
+      return;
+    }
+
+    currentUser = null;
+    resetForm();
+    showAdmin(false);
+    message(loginStatus, "Uspješno si se odjavio.", "success");
+  });
+
+  $("imageFile").addEventListener("change", () => {
+    const file = $("imageFile").files[0];
+    const preview = $("imagePreview");
+    preview.replaceChildren();
+
+    if (!file) return;
+
+    const img = document.createElement("img");
+    img.alt = "Pregled izabrane slike";
+    img.style.maxWidth = "220px";
+    img.style.marginTop = "12px";
+    img.src = URL.createObjectURL(file);
+    preview.appendChild(img);
+  });
+
+  async function start() {
+    if (!window.supabase) {
+      message(loginStatus, "Supabase biblioteka se nije učitala. Osvježi stranicu i pokušaj ponovo.", "error");
+      return;
+    }
+
+    supabase = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY
+    );
+
+    try {
+      await checkExistingSession();
+    } catch (error) {
+      message(loginStatus, friendlyError(error), "error");
+    }
+  }
+
+  start();
+})();
 </script>
 </body>
 </html>
