@@ -4,8 +4,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1424">
   <title>Bosnia Explorer — Administracija</title>
+
   <style>
+    * { box-sizing: border-box; }
+
     body {
       margin: 0;
       padding: 24px;
@@ -13,10 +17,15 @@
       background: #0b1424;
       color: #f5f0e5;
     }
-    main { max-width: 1000px; margin: auto; }
+
+    main {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
     h1, h2 { color: #e4bd70; }
+
     input, textarea, button {
-      box-sizing: border-box;
       width: 100%;
       margin: 7px 0;
       padding: 12px;
@@ -24,13 +33,24 @@
       border: 1px solid #526078;
       font: inherit;
     }
-    input, textarea { background: #17243a; color: white; }
+
+    input, textarea {
+      background: #17243a;
+      color: white;
+    }
+
     button {
       background: #d8b36b;
       color: #111827;
       font-weight: bold;
       cursor: pointer;
     }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
     section {
       margin: 20px 0;
       padding: 20px;
@@ -38,16 +58,37 @@
       border-radius: 12px;
       background: #111e32;
     }
-    .hidden { display: none; }
+
+    .hidden { display: none !important; }
+
     .item {
       padding: 12px;
-      border-bottom: 1px solid #34435b;
+      margin: 10px 0;
+      border: 1px solid #34435b;
+      border-radius: 8px;
       overflow-wrap: anywhere;
     }
+
     .muted { color: #c0cad8; }
-    #status { white-space: pre-wrap; }
+
+    #status {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      line-height: 1.5;
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
   </style>
 </head>
+
 <body>
 <main>
   <h1>Bosnia Explorer</h1>
@@ -55,136 +96,261 @@
 
   <section id="login">
     <h2>Prijava administratora</h2>
-    <label for="email">Email</label>
-    <input id="email" type="email" autocomplete="username">
-    <label for="password">Lozinka</label>
-    <input id="password" type="password" autocomplete="current-password">
-    <button id="loginBtn">Prijavi se</button>
+
+    <form id="loginForm">
+      <label for="email">Email adresa</label>
+      <input
+        id="email"
+        type="email"
+        autocomplete="username"
+        required
+      >
+
+      <label for="password">Lozinka</label>
+      <input
+        id="password"
+        type="password"
+        autocomplete="current-password"
+        required
+      >
+
+      <button id="loginBtn" type="submit">
+        Prijavi se
+      </button>
+    </form>
   </section>
 
   <section id="dashboard" class="hidden">
     <p id="who"></p>
-    <button id="logoutBtn">Odjavi se</button>
+
+    <button id="logoutBtn" type="button">
+      Odjavi se
+    </button>
+
     <h2>Sadržaj stranice</h2>
-    <p class="muted">Ovdje se prikazuju zapisi iz Supabase tabele site_content.</p>
-    <button id="refreshBtn">Osvježi sadržaj</button>
+    <p class="muted">
+      Pregled zapisa iz Supabase tabele site_content.
+    </p>
+
+    <button id="refreshBtn" type="button">
+      Osvježi sadržaj
+    </button>
+
     <div id="items"></div>
   </section>
 
-  <p id="status" role="status"></p>
+  <p id="status" role="status" aria-live="polite">
+    Učitavanje administracije...
+  </p>
 </main>
 
 <script type="module">
-import { createClient } from
-  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+const SUPABASE_URL =
+  'https://qgdnmiqziogicadhsgkw.supabase.co';
 
-const SUPABASE_URL = 'https://qgdnmiqziogicadhsgkw.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY =
+  'sb_publishable_OkgAf0i8qLu6PLKIydEuJQ_UZ_ajCpR';
 
-// Zalijepi svoj javni Supabase publishable key između navodnika.
-const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_OkgAf0i8qLu6PLKIydEuJQ_UZ_ajCpR';
-const supabase = createClient(
-  SUPABASE_URL,
-  SUPABASE_PUBLISHABLE_KEY
-);
+const $ = (id) => document.getElementById(id);
 
-const $ = id => document.getElementById(id);
-const status = message => $('status').textContent = message;
-
-async function checkSession() {
-  const { data, error } = await supabase.auth.getSession();
-  if (error) status(error.message);
-  if (data.session) await showDashboard(data.session.user);
+function setStatus(message) {
+  $('status').textContent = message;
 }
 
-async function showDashboard(user) {
-  const { data: admin, error: adminError } = await supabase
-    .from('admin_users')
-    .select('user_id')
-    .eq('user_id', user.id)
-    .maybeSingle();
+function showLogin() {
+  $('login').classList.remove('hidden');
+  $('dashboard').classList.add('hidden');
+}
 
-  if (adminError || !admin) {
-    await supabase.auth.signOut();
-    $('dashboard').classList.add('hidden');
-    $('login').classList.remove('hidden');
-    status('Ovaj korisnik nema administratorsko pravo.');
-    return;
-  }
-
+function showDashboard() {
   $('login').classList.add('hidden');
   $('dashboard').classList.remove('hidden');
-  $('who').textContent = 'Prijavljen: ' + user.email;
-  await loadContent();
 }
 
-async function loadContent() {
-  status('Učitavanje sadržaja...');
-  const { data, error } = await supabase
-    .from('site_content')
-    .select('*')
-    .order('created_at', { ascending: false });
+async function startApp() {
+  let createClient;
 
-  if (error) {
-    status('Greška pri učitavanju: ' + error.message);
+  try {
+    const module = await import(
+      'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
+    );
+    createClient = module.createClient;
+  } catch (error) {
+    setStatus(
+      'Supabase biblioteka se nije učitala. Provjeri internet ' +
+      'vezu ili pokušaj ponovo. Detalji: ' + error.message
+    );
     return;
   }
 
-  const items = $('items');
-  items.replaceChildren();
+  if (
+    !SUPABASE_PUBLISHABLE_KEY ||
+    SUPABASE_PUBLISHABLE_KEY === 'ZALIJEPI_SVOJ_PUBLISHABLE_KEY'
+  ) {
+    setStatus(
+      'Nedostaje Supabase publishable key. Provjeri konfiguraciju.'
+    );
+    return;
+  }
 
-  if (!data || data.length === 0) {
-    items.textContent = 'Tabela je prazna. Još nema zapisa.';
-  } else {
-    for (const record of data) {
-      const card = document.createElement('div');
-      card.className = 'item';
-      const title = document.createElement('strong');
-      title.textContent = record.title || 'Bez naslova';
-      const detail = document.createElement('p');
-      detail.textContent = JSON.stringify(record, null, 2);
-      card.append(title, detail);
-      items.append(card);
+  const supabase = createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+  );
+
+  async function loadContent() {
+    $('refreshBtn').disabled = true;
+    $('items').replaceChildren();
+    setStatus('Učitavanje sadržaja...');
+
+    try {
+      const { data, error } = await supabase
+        .from('site_content')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        setStatus(
+          'Greška pri učitavanju sadržaja: ' + error.message
+        );
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        $('items').textContent =
+          'Tabela je prazna. Još nema objavljenih zapisa.';
+      } else {
+        for (const record of data) {
+          const card = document.createElement('article');
+          card.className = 'item';
+
+          const title = document.createElement('h3');
+          title.textContent = record.title || 'Bez naslova';
+
+          const details = document.createElement('pre');
+          details.textContent = JSON.stringify(record, null, 2);
+
+          card.append(title, details);
+          $('items').append(card);
+        }
+      }
+
+      setStatus('Sadržaj je učitan.');
+    } catch (error) {
+      setStatus('Greška: ' + error.message);
+    } finally {
+      $('refreshBtn').disabled = false;
     }
   }
-  status('Sadržaj je učitan.');
-}
 
-$('loginBtn').addEventListener('click', async () => {
-  status('Prijavljivanje...');
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: $('email').value.trim(),
-    password: $('password').value
+  async function showAdmin(user) {
+    setStatus('Provjera administratorskih prava...');
+
+    try {
+      const { data: admin, error } = await supabase
+        .from('admin_users')
+        .select('user_id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        showLogin();
+        setStatus(
+          'Prijava je uspjela, ali provjera administratora nije. ' +
+          error.message
+        );
+        return;
+      }
+
+      if (!admin) {
+        await supabase.auth.signOut();
+        showLogin();
+        setStatus(
+          'Korisnik je prijavljen, ali nije registrovan kao ' +
+          'administrator u tabeli admin_users.'
+        );
+        return;
+      }
+
+      $('who').textContent = 'Prijavljen: ' + (user.email || '');
+      showDashboard();
+      await loadContent();
+    } catch (error) {
+      showLogin();
+      setStatus('Greška pri provjeri administratora: ' + error.message);
+    }
+  }
+
+  $('loginForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const button = $('loginBtn');
+    button.disabled = true;
+    setStatus('Prijavljivanje...');
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: $('email').value.trim(),
+        password: $('password').value
+      });
+
+      if (error) {
+        setStatus('Prijava nije uspjela: ' + error.message);
+        return;
+      }
+
+      await showAdmin(data.user);
+    } catch (error) {
+      setStatus(
+        'Greška pri povezivanju sa Supabaseom: ' + error.message
+      );
+    } finally {
+      button.disabled = false;
+    }
   });
 
-  if (error) {
-    status('Prijava nije uspjela: ' + error.message);
-    return;
+  $('logoutBtn').addEventListener('click', async () => {
+    setStatus('Odjavljivanje...');
+
+    const { error } = await supabase.auth.signOut();
+
+    showLogin();
+
+    if (error) {
+      setStatus('Greška pri odjavi: ' + error.message);
+    } else {
+      setStatus('Uspješno ste se odjavili.');
+    }
+  });
+
+  $('refreshBtn').addEventListener('click', loadContent);
+
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_OUT') {
+      showLogin();
+      $('who').textContent = '';
+    }
+  });
+
+  try {
+    const { data, error } = await supabase.auth.getSession();
+
+    if (error) {
+      setStatus('Greška pri provjeri sesije: ' + error.message);
+      return;
+    }
+
+    if (data.session) {
+      await showAdmin(data.session.user);
+    } else {
+      setStatus('Unesi email i lozinku za prijavu.');
+    }
+  } catch (error) {
+    setStatus('Greška pri pokretanju: ' + error.message);
   }
-  await showDashboard(data.user);
-});
-
-$('logoutBtn').addEventListener('click', async () => {
-  await supabase.auth.signOut();
-  $('dashboard').classList.add('hidden');
-  $('login').classList.remove('hidden');
-  status('Odjavljeni ste.');
-});
-
-$('refreshBtn').addEventListener('click', loadContent);
-
-supabase.auth.onAuthStateChange((event, session) => {
-  if (event === 'SIGNED_OUT') {
-    $('dashboard').classList.add('hidden');
-    $('login').classList.remove('hidden');
-  }
-});
-
-if (SUPABASE_PUBLISHABLE_KEY === 'dce1b8ad-570f-49c1-83d2-7722f4b40889') {
-  status('Prije prijave ubaci svoj javni Supabase publishable key u kod.');
-} else {
-  checkSession();
 }
+
+startApp();
 </script>
 </body>
 </html>
-
